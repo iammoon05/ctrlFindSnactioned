@@ -42,7 +42,32 @@ def processCapture(elementArray):
 		i += 1
 	return (res)
 
-processedElements = processCapture(excludingFirst)
+def processIndividualsNames(tempDictionary, array, index, individualName = ""):
+	if "name" not in tempDictionary:
+		while array[index] != "Name Type:":
+
+			# print (j)
+			print (array[index])
+			individualName += array[index] + " "
+			#Names can have multiple or single tags
+			index += 1
+		print ('done with frst ever name: ' + individualName)
+		tempDictionary["name"] = [individualName.strip()]
+		print(tempDictionary)
+	else:
+		print ('while name exists in dict')
+		print (array[index])
+		while array[index] != "Name Type:":
+			PrimaryNameMatcher = re.match("Primary Name", array[index])
+			AliasMatcher = re.match("Primary Name", array[index])
+			if (not PrimaryNameMatcher and not AliasMatcher):
+				individualName += array[index] + " "
+			index += 1
+		# print ('done with additonal names: ' + individualName)
+		tempDictionary["name"].append(individualName.strip())
+	print (index)
+	return (tempDictionary, index)
+
 
 def dictify(arr):
 	tempD = dict()
@@ -83,32 +108,8 @@ def dictify(arr):
 					#Since this tag will be Name
 					i = i + 1
 
-					if "name" not in tempD:
-						while arr[i] != "Name Type:":
+					tempD, i = processIndividualsNames(tempD, arr, i)
 
-							# print (j)
-							print (arr[i])
-							individualName += arr[i] + " "
-							#Names can have multiple or single tags
-							i += 1
-						print ('done with frst ever name: ' + individualName)
-						tempD["name"] = [individualName.strip()]
-						print(tempD)
-					else:
-						print ('while name exists in dict')
-						print (arr[i])
-						while arr[i] != "Name Type:":
-							PrimaryNameMatcher = re.match("Primary Name", arr[i])
-							AliasMatcher = re.match("Primary Name", arr[i])
-							if (not PrimaryNameMatcher and not AliasMatcher):
-								individualName += arr[i] + " "
-							i += 1
-						# print ('done with additonal names: ' + individualName)
-						tempD["name"].append(individualName.strip())
-					print (i)
-
-				
-				
 				
 			if ("Address Country:" in arr[i]):
 				if "country" not in tempD:
@@ -140,6 +141,7 @@ def dictify(arr):
 		else:
 			i += 1
 
+processedElements = processCapture(excludingFirst)
 
 print(processedElements[-1])
 dictify(processedElements)
