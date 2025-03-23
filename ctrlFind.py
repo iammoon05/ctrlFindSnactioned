@@ -77,8 +77,6 @@ def dictify(arr):
 		print ('element: ' + arr[i])
 		
 		uniqueIdMatch = re.fullmatch("Unique ID:", arr[i])
-		entityTypeMatch = re.fullmatch("Entity", arr[i])
-		individualTypeMatch = re.fullmatch("Individual", arr[i])
 		
 		if (uniqueIdMatch):
 			tempD["id"] = arr[i + 1]
