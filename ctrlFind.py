@@ -24,18 +24,8 @@ globalDB = []
 
 cap = soup.find_all("div")
 print(len(cap))
-# print(cap[1])
-# print()
-# print(cap[2])
-# print()
-# print(cap[3])
-# print(cap[4])
-# print(cap[5])
+
 excludingFirst = cap[1:]
-
-# def getNavigableString(tag):
-# 	for child in 
-
 
 def processCapture(elementArray):
 	res = []
@@ -59,7 +49,7 @@ def dictify(arr):
 	i = 0
 	individualName = ""
 	while i < len(arr):
-		print ('elemtn: ' + arr[i])
+		print ('element: ' + arr[i])
 		
 		uniqueIdMatch = re.fullmatch("Unique ID:", arr[i])
 		entityTypeMatch = re.fullmatch("Entity", arr[i])
@@ -80,43 +70,46 @@ def dictify(arr):
 				print ('Got into name')
 				print (tempD)
 
-				if tempD["type"] == "Individual":
-					individualName = ""
-					j = i + 1
-					print ('in individual name check')
-					if "name" not in tempD:
-						while arr[j] != "Name Type:":
-
-							# print (j)
-							print (arr[j])
-							individualName += arr[j] + " "
-
-							j += 1
-						print ('done with frst ever name: ' + individualName)
-						print (tempD)
-						tempD["name"] = [individualName.strip()]
-						# print (tempD)
-					else:
-						# print ('while name exists in dict')
-						print (arr[j])
-						while arr[j] != "Name Type:":
-							individualName += arr[j] + " "
-							j += 1
-						# print ('done with additonal names: ' + individualName)
-						tempD["name"].append(individualName.strip())
-					i = j
-					print (i)
-
-				if tempD["type"]:
+				if tempD["type"] and tempD["type"] != "Individual":
 					if "name" not in tempD:
 						tempD["name"] = [arr[i + 1]]
 					else:
 						tempD["name"].append(arr[i + 1])
 						i += 1
+
+				if tempD["type"] == "Individual":
+					individualName = ""
+
+					#Since this tag will be Name
+					i = i + 1
+
+					if "name" not in tempD:
+						while arr[i] != "Name Type:":
+
+							# print (j)
+							print (arr[i])
+							individualName += arr[i] + " "
+							#Names can have multiple or single tags
+							i += 1
+						print ('done with frst ever name: ' + individualName)
+						tempD["name"] = [individualName.strip()]
+						print(tempD)
+					else:
+						print ('while name exists in dict')
+						print (arr[i])
+						while arr[i] != "Name Type:":
+							PrimaryNameMatcher = re.match("Primary Name", arr[i])
+							AliasMatcher = re.match("Primary Name", arr[i])
+							if (not PrimaryNameMatcher and not AliasMatcher):
+								individualName += arr[i] + " "
+							i += 1
+						# print ('done with additonal names: ' + individualName)
+						tempD["name"].append(individualName.strip())
+					print (i)
+
 				
 				
-
-
+				
 			if ("Address Country:" in arr[i]):
 				if "country" not in tempD:
 					tempD["country"] = [arr[i + 1]]
@@ -140,11 +133,12 @@ def dictify(arr):
 				tempD = {}
 				i += 1
 
-			#normal increment
 			else:
 				i += 1
 
-			continue
+		#normal increment
+		else:
+			i += 1
 
 
 print(processedElements[-1])
