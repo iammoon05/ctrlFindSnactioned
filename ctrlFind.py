@@ -61,14 +61,13 @@ def dictify(arr):
 	while i < len(arr):
 		print ('elemtn: ' + arr[i])
 		uniqueIdMatch = re.fullmatch("Unique ID:", arr[i])
-		typeMatch = re.fullmatch(" ID:", arr[i])
-		if ("Unique ID:" in arr[i]):
-			print (i)
+		entityTypeMatch = re.fullmatch("Entity", arr[i])
+		individualTypeMatch = re.fullmatch("Individual", arr[i])
+		if (uniqueIdMatch):
 			tempD["id"] = arr[i + 1]
 			i += 2
 
-		elif ("Entity" in arr[i] or "Individual" in arr[i]):
-			print (i)
+		elif (entityTypeMatch or individualTypeMatch):
 			print('got into entity')
 			print (arr[i])
 			tempD["type"] = arr[i]
@@ -87,21 +86,29 @@ def dictify(arr):
 					else:
 						tempD["name"].append(arr[i + 1])
 						i += 1
+				
 				if tempD["type"] == "Individual":
 					individualName = ""
-					j = i
-					print (i, j)
+					j = i + 1
 					print ('in individual name check')
 					if "name" not in tempD:
-						print (arr[j])
-						while arr[j] != ("Name Type"):
-							individualName += arr[j]
+						while arr[j] != "Name Type:":
+
+							print (j)
+							print (arr[j])
+							individualName += arr[j] + " "
+
 							j += 1
+						print ('done with frst ever name: ' + individualName)
+						print (tempD)
+						tempD["name"] = [individualName.strip()]
+						print (tempD)
 					else:
 						while arr[j] != ("Name Type"):
-							individualName += arr[i]
+							individualName += arr[j] + " "
 							j += 1
-					i + j
+						print ('done with additonal names>: ' + individualName)
+					i = j
 
 
 			if ("Address Country:" in arr[i]):
