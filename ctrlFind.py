@@ -118,11 +118,11 @@ def load():
 	dictify(processedElements)
 
 
-def search(keyword: str):
+def search(keyword: str, searchType: str):
 	result: (str, str, str) = []
 	for i in globalStorage:
 		for j in i["name"]:
-			match = re.match(keyword, j)
+			match = re.search(keyword, j) if searchType == "substring" else re.match(keyword, j)
 			if (match):
 				result.append((i["id"], i["type"], keyword))
 				break
@@ -135,17 +135,21 @@ def search(keyword: str):
 def main():
 	parser = argparse.ArgumentParser(description='Find Unique ID, Name and Type from UK Sanctions List')
 	parser.add_argument('--keyword', type=str, nargs="+", help="a keyword/name to search for")
+	parser.add_argument('--searchType', choices=["substring", "start"], default="substring")
 	args = parser.parse_args()
 	keyword = args.keyword
+	searchType = args.searchType
 
 	try:
 		word = " ".join(keyword)
 		print ("Searching for: ", word)
+		print ("Search Type: ", searchType)
+
 		boolArrayAlpha = [x.isalpha() for x in keyword]
 
 		if (all(boolArrayAlpha)):
 			load()
-			result = search(word)
+			result = search(word, searchType)
 			if not result:
 				print ("No results found!")
 			else:
