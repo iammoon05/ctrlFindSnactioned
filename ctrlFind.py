@@ -3,7 +3,6 @@ from bs4 import NavigableString
 import requests
 import pprint
 import re
-import sys
 import argparse
 
 pp = pprint.PrettyPrinter(indent=4)
