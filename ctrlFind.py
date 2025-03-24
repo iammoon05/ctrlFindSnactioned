@@ -8,21 +8,11 @@ import argparse
 
 pp = pprint.PrettyPrinter(indent=4)
 
-source = requests.get("https://docs.fcdo.gov.uk/docs/UK-Sanctions-List.html").text[:]
-
-soup = BS(source, "lxml")
-
-globalDB = []
-
-# cap = soup.find_all("div")
-# print(len(cap))
-
-# excludingFirst = cap[1:]
+globalStorage = []
 
 def processCapture(elementArray):
 	res = []
 	i = 0	
-	print (len(elementArray))
 	while(i < len(elementArray)):
 		for child in elementArray[i].descendants:
 			if isinstance(child, NavigableString):
@@ -38,35 +28,27 @@ def processIndividualsNames(tempDictionary, array, index, individualName = ""):
 	if "name" not in tempDictionary:
 		while array[index] != "Name Type:":
 
-			# print (j)
-			print (array[index])
 			individualName += array[index] + " "
 			#Names can have multiple or single tags
 			index += 1
-		print ('done with frst ever name: ' + individualName)
 		tempDictionary["name"] = [individualName.strip()]
-		print(tempDictionary)
+	
 	else:
-		print ('while name exists in dict')
-		print (array[index])
 		while array[index] != "Name Type:":
 			PrimaryNameMatcher = re.match("Primary Name", array[index])
 			AliasMatcher = re.match("Primary Name", array[index])
 			if (not PrimaryNameMatcher and not AliasMatcher):
 				individualName += array[index] + " "
 			index += 1
-		# print ('done with additonal names: ' + individualName)
 		tempDictionary["name"].append(individualName.strip())
-	print (index)
+	
 	return (tempDictionary, index)
 
 
 def dictify(arr):
 	tempD = dict()
 	i = 0
-	individualName = ""
 	while i < len(arr):
-		print ('element: ' + arr[i])
 		
 		uniqueIdMatch = re.fullmatch("Unique ID:", arr[i])
 		
@@ -77,15 +59,12 @@ def dictify(arr):
 
 		#Since everything here on has a lookahead
 		elif ((i + 1) < len(arr)):
-			print ('tried in lookahead')
 			a = arr[i].split('Name:')
 			pattern = "Name:"
 			t = re.fullmatch(pattern, arr[i])
 
 			#Either we get a pattern match of whole word or None
 			if (t):
-				print ('Got into name')
-				print (tempD)
 
 				if tempD["type"] and tempD["type"] != "Individual":
 					if "name" not in tempD:
@@ -95,8 +74,6 @@ def dictify(arr):
 						i += 1
 
 				if tempD["type"] == "Individual":
-					individualName = ""
-
 					#Since this tag will be Name
 					i = i + 1
 
@@ -115,14 +92,14 @@ def dictify(arr):
 			#Addtional check before doing id lookahead
 			if (i != (len(arr) - 1) and "Unique ID:" in arr[i+1]):
 
-				globalDB.append(tempD)
+				globalStorage.append(tempD)
 				tempD = {}
 				i += 1
 
 			#For the very last element	
 			elif ((i + 1) >= len(arr)):
 
-				globalDB.append(tempD)
+				globalStorage.append(tempD)
 				tempD = {}
 				i += 1
 
@@ -134,22 +111,46 @@ def dictify(arr):
 			i += 1
 
 
+def load():
+	source = requests.get("https://docs.fcdo.gov.uk/docs/UK-Sanctions-List.html").text[:]
+	soup = BS(source, "lxml")
+	capturedDivs = soup.find_all("div")[1:]
+	processedElements = processCapture(capturedDivs)
+	dictify(processedElements)
 
-# processedElements = processCapture(excludingFirst)
 
-# print(processedElements[-1])
-# dictify(processedElements)
-# pp.pprint(globalDB)
+def search(keyword: str):
+	result: (str, str, str) = []
+	for i in globalStorage:
+		for j in i["name"]:
+			match = re.match(keyword, j)
+			if (match):
+				result.append((i["id"], i["type"], keyword))
+				break
+			else:
+				pass
+
+	return result
+
 
 def main():
-	parser = argparse.ArgumentParser(description='Find Unique ID, Name and Type from UK Sanctioned List')
-	parser.add_argument('--keyword', type=str, help='a keyword/name to search for')
+	parser = argparse.ArgumentParser(description='Find Unique ID, Name and Type from UK Sanctions List')
+	parser.add_argument('--keyword', type=str, nargs="+", help="a keyword/name to search for")
 	args = parser.parse_args()
 	keyword = args.keyword
 
 	try:
-		if (keyword.isalpha()):
-			print ("yay")
+		word = " ".join(keyword)
+		print ("Searching for: ", word)
+		boolArrayAlpha = [x.isalpha() for x in keyword]
+
+		if (all(boolArrayAlpha)):
+			load()
+			result = search(word)
+			if not result:
+				print ("No results found!")
+			else:
+				pp.pprint(result)
 		else:
 			print ("Please provide a valid string that only contains letters")
 	
