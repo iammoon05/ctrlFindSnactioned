@@ -3,6 +3,8 @@ from bs4 import NavigableString
 import requests
 import pprint
 import re
+import sys
+import argparse
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -10,22 +12,12 @@ source = requests.get("https://docs.fcdo.gov.uk/docs/UK-Sanctions-List.html").te
 
 soup = BS(source, "lxml")
 
-sampleDict = {
-	"id": 1,
-	"type": "Entity",
-	"names": [("name", "primary"), ("name", "alias"), ("name", "nonlatin")],
-	"addresses": [],
-	"countries": [],
-	"phoneNumbers": [],
-	"emails": []
-}
-
 globalDB = []
 
-cap = soup.find_all("div")
-print(len(cap))
+# cap = soup.find_all("div")
+# print(len(cap))
 
-excludingFirst = cap[1:]
+# excludingFirst = cap[1:]
 
 def processCapture(elementArray):
 	res = []
@@ -89,6 +81,8 @@ def dictify(arr):
 			a = arr[i].split('Name:')
 			pattern = "Name:"
 			t = re.fullmatch(pattern, arr[i])
+
+			#Either we get a pattern match of whole word or None
 			if (t):
 				print ('Got into name')
 				print (tempD)
@@ -139,10 +133,31 @@ def dictify(arr):
 		else:
 			i += 1
 
-processedElements = processCapture(excludingFirst)
 
-print(processedElements[-1])
-dictify(processedElements)
-pp.pprint(globalDB)
+
+# processedElements = processCapture(excludingFirst)
+
+# print(processedElements[-1])
+# dictify(processedElements)
+# pp.pprint(globalDB)
+
+def main():
+	parser = argparse.ArgumentParser(description='Find Unique ID, Name and Type from UK Sanctioned List')
+	parser.add_argument('--keyword', type=str, help='a keyword/name to search for')
+	args = parser.parse_args()
+	keyword = args.keyword
+
+	try:
+		if (keyword.isalpha()):
+			print ("yay")
+		else:
+			print ("Please provide a valid string that only contains letters")
+	
+	except Exception as e:
+		print (e)
+
+
+if __name__ == "__main__":
+	main()
 
 
